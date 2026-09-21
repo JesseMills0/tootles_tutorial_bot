@@ -1,5 +1,6 @@
+import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, ExecuteProcess
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
@@ -44,6 +45,17 @@ def generate_launch_description():
             ParameterFile(PathJoinSubstitution([FindPackageShare("sim"), "config", "mujoco_plugins.yaml"])),
         ],
     )
+    
+    # Translates ROS2 messages to something Rerun can understand. 
+    # Also starts up rerun, accessible via http://localhost:9090
+    rerun_bridge = ExecuteProcess(
+        cmd=[
+            os.path.expanduser("~/rerun_venv/bin/python"),
+            "/workspaces/tootles/ros2/bringup/bringup/rerun_bridge.py",
+            "--ros-args", "-p", "use_sim_time:=true",
+        ],
+        output="screen",
+    )
 
     return LaunchDescription(
         [
@@ -51,5 +63,6 @@ def generate_launch_description():
             base,
             mujoco_robot_description,
             control_node,
+            rerun_bridge,
         ]
     )
