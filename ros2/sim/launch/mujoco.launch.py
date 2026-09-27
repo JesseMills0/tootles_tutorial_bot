@@ -47,7 +47,7 @@ def generate_launch_description():
     )
     
     # Translates ROS2 messages to something Rerun can understand. 
-    # Also starts up rerun, accessible via http://localhost:9090
+    # Also starts up rerun, accessible via http://localhost:9090/?url=rerun%2Bhttp%3A%2F%2Flocalhost%3A9876%2Fproxy
     rerun_bridge = ExecuteProcess(
         cmd=[
             os.path.expanduser("~/rerun_venv/bin/python"),

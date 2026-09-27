@@ -18,6 +18,9 @@ To use this you need to have rerun installed:
 # and to remove some of the topics that are not used by Tootles.
 # Source: https://github.com/rerun-io/rerun/blob/latest/examples/python/ros_node/main.py
 
+# When you start the visualizer, open this link in your browser to use it:
+# http://localhost:9090/?url=rerun%2Bhttp%3A%2F%2Flocalhost%3A9876%2Fproxy
+
 from __future__ import annotations
 
 import argparse
