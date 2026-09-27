@@ -8,11 +8,15 @@ see the tracking issue: <https://github.com/rerun-io/rerun/issues/1537>.
 
 NOTE: Unlike many of the other examples, this example requires a system installation of ROS
 in addition to the packages from requirements.txt.
+
+To use this you need to have rerun installed:
+    pip install rerun-sdk
 """
 
 # This code was taken from the examples page for how to bridge ROS2 topics to Rerun
 # A few minor changes have been made to make it compatible with Docker Containers
 # and to remove some of the topics that are not used by Tootles.
+# Source: https://github.com/rerun-io/rerun/blob/latest/examples/python/ros_node/main.py
 
 from __future__ import annotations
 
@@ -22,7 +26,7 @@ from collections.abc import Callable
 
 import numpy as np
 
-import rerun as rr  # pip install rerun-sdk
+import rerun as rr
 from rerun.components import Colormap
 
 try:
@@ -43,17 +47,17 @@ try:
 
 except ImportError:
     print(
-        """
+        '''
 Could not import the required ROS2 packages.
 
 Make sure you have installed ROS2 (https://docs.ros.org/en/jazzy/index.html)
 and sourced /opt/ros/jazzy/setup.bash
-""",
+''',
     )
     sys.exit(1)
 
 
-class TurtleSubscriber(Node):  # type: ignore[misc]
+class RobotSubscriber(Node):  # type: ignore[misc]
     def __init__(self) -> None:
         super().__init__("rr_turtlebot")
 
@@ -297,15 +301,23 @@ class TurtleSubscriber(Node):  # type: ignore[misc]
 
 def main() -> None:
     rr.init("rerun_ros_bridge")
-    server_uri = rr.serve_grpc()
-    rr.serve_web_viewer(connect_to=server_uri, open_browser=True)
 
-    rclpy.init()  # reads --ros-args from sys.argv, so use_sim_time still works
+    grpc_port = 9876
+    web_port = 9090
 
-    turtle_subscriber = TurtleSubscriber()
-    rclpy.spin(turtle_subscriber, executor=rclpy.executors.MultiThreadedExecutor())
+    server_uri = rr.serve_grpc(grpc_port=grpc_port)
+    rr.serve_web_viewer(connect_to=server_uri, web_port=web_port, open_browser=False)
 
-    turtle_subscriber.destroy_node()
+    web_url = f"http://localhost:{web_port}/?url=ws://localhost:{grpc_port}"
+    print(f"\n{'='*60}\nRERUN VIEWER URL: {web_url}\n{'='*60}\n")
+
+    # reads --ros-args from sys.argv
+    rclpy.init()
+
+    robot_subscriber = RobotSubscriber()
+    rclpy.spin(robot_subscriber, executor=rclpy.executors.MultiThreadedExecutor())
+
+    robot_subscriber.destroy_node()
     rclpy.shutdown()
 
 
