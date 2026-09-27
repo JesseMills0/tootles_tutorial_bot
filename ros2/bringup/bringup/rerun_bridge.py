@@ -311,7 +311,11 @@ def main() -> None:
     server_uri = rr.serve_grpc(grpc_port=grpc_port)
     rr.serve_web_viewer(connect_to=server_uri, web_port=web_port, open_browser=False)
 
-    web_url = f"http://localhost:{web_port}/?url=ws://localhost:{grpc_port}"
+    # Prints out the URL to open in a browser to view the Rerun visualizer.
+    # This is kinda hard to find in the logs, might make it output to a file or something in the future.
+    from urllib.parse import quote
+    proxy_url = f"rerun+http://localhost:{grpc_port}/proxy"
+    web_url = f"http://localhost:{web_port}/?url={quote(proxy_url, safe='')}"
     print(f"\n{'='*60}\nRERUN VIEWER URL: {web_url}\n{'='*60}\n")
 
     # reads --ros-args from sys.argv
