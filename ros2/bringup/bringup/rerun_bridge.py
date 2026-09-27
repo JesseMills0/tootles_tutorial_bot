@@ -168,15 +168,22 @@ class RobotSubscriber(Node):  # type: ignore[misc]
         Logs a depth image as a Rerun DepthImage.
         """
         time = Time.from_msg(img.header.stamp)
+        depth_arr = self.cv_bridge.imgmsg_to_cv2(img, desired_encoding="32FC1")
+
+        # MuJoCo assigns far-clip sentinel values (~1000m) to background/no-hit
+        # pixels. Clip those out so they don't blow out the point cloud's scale.
+        max_range = 20.0  # meters — generous margin above any real simulated geometry
+        depth_arr = np.where(depth_arr > max_range, np.nan, depth_arr)
+
         depth_image = rr.DepthImage(
-            self.cv_bridge.imgmsg_to_cv2(img, desired_encoding="32FC1"),
+            depth_arr,
             meter=1.0,
             colormap="viridis",
         )
         rr.set_time("ros_time", timestamp=np.datetime64(time.nanoseconds, "ns"))
         rr.log("rgbd_camera/depth_image", depth_image)
         rr.log("rgbd_camera/depth_image", rr.CoordinateFrame(frame=img.header.frame_id + "_image_plane"))
-
+    
     def occupancy_grid_callback(
         self,
         entity_path: str,
